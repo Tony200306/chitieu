@@ -3,6 +3,7 @@ export interface Member {
   name: string
   phone?: string
   qrUrl?: string
+  qrData?: string
 }
 
 export interface ExpenseItem {

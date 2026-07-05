@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { db, storage } from './firebase'
+import { db } from './firebase'
 import {
   collection,
   addDoc,
@@ -14,7 +14,6 @@ import {
   serverTimestamp,
   type Unsubscribe,
 } from 'firebase/firestore'
-import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import type { Member, ExpenseItem, Settlement } from './types'
 
 interface AppState {
@@ -67,6 +66,7 @@ export const useStore = create<AppState>()((set, get) => ({
             name: data.name as string,
             phone: data.phone as string | undefined,
             qrUrl: data.qrUrl as string | undefined,
+            qrData: data.qrData as string | undefined,
           }
         })
         set({ members })
@@ -111,7 +111,6 @@ export const useStore = create<AppState>()((set, get) => ({
     })
     batch.delete(doc(db, 'members', id))
     await batch.commit()
-    try { await deleteObject(ref(storage, `qr/${id}`)) } catch {}
   },
 
   renameMember: async (id, name) => {
@@ -123,10 +122,13 @@ export const useStore = create<AppState>()((set, get) => ({
   },
 
   uploadMemberQr: async (id, file) => {
-    const storageRef = ref(storage, `qr/${id}`)
-    await uploadBytes(storageRef, file)
-    const qrUrl = await getDownloadURL(storageRef)
-    await updateDoc(doc(db, 'members', id), { qrUrl })
+    const qrData = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = () => reject(reader.error)
+      reader.readAsDataURL(file)
+    })
+    await updateDoc(doc(db, 'members', id), { qrData })
   },
 
   addExpense: async (item) => {
