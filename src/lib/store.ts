@@ -124,7 +124,6 @@ export const useStore = create<AppState>()((set, get) => ({
 
   uploadMemberQr: async (id, file) => {
     const storageRef = ref(storage, `qr/${id}`)
-    try { await deleteObject(storageRef) } catch {}
     await uploadBytes(storageRef, file)
     const qrUrl = await getDownloadURL(storageRef)
     await updateDoc(doc(db, 'members', id), { qrUrl })
