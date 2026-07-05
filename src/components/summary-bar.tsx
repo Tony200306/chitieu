@@ -11,7 +11,7 @@ export function SummaryBar() {
 
   return (
     <div className="space-y-4">
-      <div className="flex flex-wrap items-stretch gap-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 lg:flex lg:flex-wrap">
         <div className="flex items-center gap-3 rounded-xl border bg-card px-4 py-3 shadow-sm">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
             <Wallet className="h-4 w-4 text-primary" />

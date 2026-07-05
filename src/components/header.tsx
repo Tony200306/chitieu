@@ -77,20 +77,20 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-lg">
-      <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between px-4">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <Users className="h-4 w-4 text-primary-foreground" />
+      <div className="mx-auto flex h-14 max-w-[1400px] items-center justify-between gap-1 px-3 sm:px-4">
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary sm:h-8 sm:w-8">
+            <Users className="h-3.5 w-3.5 text-primary-foreground sm:h-4 sm:w-4" />
           </div>
-          <span className="text-sm font-semibold">SplitWise</span>
+          <span className="text-xs font-semibold sm:text-sm">SplitWise</span>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 sm:gap-2">
           <Dialog open={addOpen} onOpenChange={setAddOpen}>
             <DialogTrigger asChild>
-              <Button size="sm" className="rounded-lg">
-                <Plus className="mr-1 h-4 w-4" />
-                Thêm thành viên
+              <Button size="sm" className="rounded-lg px-2 sm:px-3">
+                <Plus className="h-4 w-4" />
+                <span className="hidden sm:inline sm:ml-1">Thêm thành viên</span>
               </Button>
             </DialogTrigger>
             <DialogContent>
@@ -124,12 +124,12 @@ export function Header() {
             </DialogContent>
           </Dialog>
 
-          <Separator orientation="vertical" className="h-6" />
+          <Separator orientation="vertical" className="h-4 sm:h-6" />
 
-          <Button variant="ghost" size="icon" onClick={exportCSV} className="rounded-full" title="Xuất CSV">
+          <Button variant="ghost" size="icon" onClick={exportCSV} className="hidden sm:inline-flex rounded-full" title="Xuất CSV">
             <Download className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={importCSV} className="rounded-full" title="Nhập CSV">
+          <Button variant="ghost" size="icon" onClick={importCSV} className="hidden sm:inline-flex rounded-full" title="Nhập CSV">
             <Upload className="h-4 w-4" />
           </Button>
 

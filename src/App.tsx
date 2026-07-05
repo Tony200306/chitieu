@@ -32,7 +32,7 @@ export default function App() {
       <Header />
       <main className="mx-auto max-w-[1400px] px-4 py-6">
         <SummaryBar />
-        <div className="mt-6 flex gap-4 overflow-x-auto pb-4">
+        <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:overflow-x-auto sm:pb-4">
           {members.map((member, index) => (
             <MemberColumn key={member.id} memberId={member.id} index={index} />
           ))}

@@ -54,7 +54,7 @@ export function MemberColumn({ memberId, index }: MemberColumnProps) {
   }
 
   return (
-    <div className="flex w-64 shrink-0 flex-col rounded-xl border bg-card shadow-sm transition-all hover:shadow-md">
+    <div className="flex w-full flex-col rounded-xl border bg-card shadow-sm transition-all hover:shadow-md sm:w-64 sm:shrink-0">
       <div className={cn('flex items-center gap-2 rounded-t-xl px-3 py-2.5', colorClass)}>
         <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-[10px] font-bold text-white">
           {index + 1}
