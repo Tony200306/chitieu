@@ -10,7 +10,7 @@ interface MemberRowProps {
 }
 
 export function MemberRow({ item, onUpdate, onDelete, autoFocus }: MemberRowProps) {
-  const [displayVal, setDisplayVal] = useState(item.amount ? (item.amount / 1000).toString() : '')
+  const [displayVal, setDisplayVal] = useState(item.amount > 0 ? (item.amount / 1000).toString() : '')
   const amountRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
@@ -19,12 +19,16 @@ export function MemberRow({ item, onUpdate, onDelete, autoFocus }: MemberRowProp
 
   useEffect(() => {
     const inK = item.amount / 1000
-    setDisplayVal(inK ? inK.toString() : '')
+    setDisplayVal(inK > 0 ? inK.toString() : '')
   }, [item.amount])
 
   const commitAmount = (val: string) => {
+    if (val === '') {
+      onDelete()
+      return
+    }
     const num = parseFloat(val)
-    if (!isNaN(num) && num > 0) onUpdate({ amount: Math.round(num * 1000) })
+    if (!isNaN(num) && num >= 0) onUpdate({ amount: Math.round(num * 1000) })
   }
 
   return (
