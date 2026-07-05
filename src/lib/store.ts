@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { db } from './firebase'
+import { db, storage } from './firebase'
 import {
   collection,
   addDoc,
@@ -14,6 +14,7 @@ import {
   serverTimestamp,
   type Unsubscribe,
 } from 'firebase/firestore'
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
 import type { Member, ExpenseItem, Settlement } from './types'
 
 interface AppState {
@@ -29,6 +30,8 @@ interface AppState {
   addMember: (name: string) => Promise<void>
   removeMember: (id: string) => Promise<void>
   renameMember: (id: string, name: string) => Promise<void>
+  updateMemberPhone: (id: string, phone: string) => Promise<void>
+  uploadMemberQr: (id: string, file: File) => Promise<void>
 
   addExpense: (item: Omit<ExpenseItem, 'id'>) => Promise<void>
   updateExpense: (id: string, data: Partial<ExpenseItem>) => Promise<void>
@@ -56,10 +59,15 @@ export const useStore = create<AppState>()((set, get) => ({
     const unsubMembers = onSnapshot(
       query(collection(db, 'members'), orderBy('createdAt')),
       (snap) => {
-        const members = snap.docs.map((d) => ({
-          id: d.id,
-          name: d.data().name as string,
-        }))
+        const members = snap.docs.map((d) => {
+          const data = d.data()
+          return {
+            id: d.id,
+            name: data.name as string,
+            phone: data.phone as string | undefined,
+            qrUrl: data.qrUrl as string | undefined,
+          }
+        })
         set({ members })
       }
     )
@@ -102,10 +110,23 @@ export const useStore = create<AppState>()((set, get) => ({
     })
     batch.delete(doc(db, 'members', id))
     await batch.commit()
+    try { await deleteObject(ref(storage, `qr/${id}`)) } catch {}
   },
 
   renameMember: async (id, name) => {
     await updateDoc(doc(db, 'members', id), { name })
+  },
+
+  updateMemberPhone: async (id, phone) => {
+    await updateDoc(doc(db, 'members', id), { phone })
+  },
+
+  uploadMemberQr: async (id, file) => {
+    const storageRef = ref(storage, `qr/${id}`)
+    try { await deleteObject(storageRef) } catch {}
+    await uploadBytes(storageRef, file)
+    const qrUrl = await getDownloadURL(storageRef)
+    await updateDoc(doc(db, 'members', id), { qrUrl })
   },
 
   addExpense: async (item) => {

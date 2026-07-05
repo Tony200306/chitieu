@@ -1,6 +1,8 @@
 export interface Member {
   id: string
   name: string
+  phone?: string
+  qrUrl?: string
 }
 
 export interface ExpenseItem {
