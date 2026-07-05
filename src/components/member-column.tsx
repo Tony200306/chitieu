@@ -70,7 +70,11 @@ export function MemberColumn({ memberId, index }: MemberColumnProps) {
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
-    await uploadMemberQr(memberId, file)
+    try {
+      await uploadMemberQr(memberId, file)
+    } finally {
+      if (fileInputRef.current) fileInputRef.current.value = ''
+    }
   }
 
   return (
