@@ -24,7 +24,6 @@ export function SummaryBar() {
 
         <div className="flex items-center gap-3 rounded-xl border bg-card px-4 py-3 shadow-sm">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
-            <span className="text-xs font-bold text-muted-foreground">{formatAmount(total / members.length || 0)}</span>
           </div>
           <div>
             <p className="text-[10px] text-muted-foreground">Mỗi người</p>
