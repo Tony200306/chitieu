@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react'
-import { Plus, Pencil, X, Phone, QrCode, Eye } from 'lucide-react'
+import { Plus, Pencil, X, Phone, QrCode, Trash2 } from 'lucide-react'
 import { Button } from './ui/button'
 import {
   Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle,
@@ -9,7 +9,6 @@ import { MemberRow } from './member-row'
 import { useStore } from '@/lib/store'
 import { PRESET_COLORS, type ExpenseItem } from '@/lib/types'
 import { cn, formatAmount } from '@/lib/utils'
-import { QrViewer } from './qr-viewer'
 
 interface MemberColumnProps {
   memberId: string
@@ -17,7 +16,7 @@ interface MemberColumnProps {
 }
 
 export function MemberColumn({ memberId, index }: MemberColumnProps) {
-  const { members, getMemberExpenses, addExpense, updateExpense, deleteExpense, renameMember, updateMemberPhone, uploadMemberQr, removeMember } = useStore()
+  const { members, getMemberExpenses, addExpense, updateExpense, deleteExpense, renameMember, updateMemberPhone, uploadMemberQr, removeMember, clearMemberExpenses } = useStore()
   const member = members.find((m) => m.id === memberId)!
   const items = getMemberExpenses(memberId)
   const memberTotal = items.reduce((s, e) => s + e.amount, 0)
@@ -26,6 +25,7 @@ export function MemberColumn({ memberId, index }: MemberColumnProps) {
   const [editingPhone, setEditingPhone] = useState(false)
   const [phoneInput, setPhoneInput] = useState(member.phone || '')
   const [removeOpen, setRemoveOpen] = useState(false)
+  const [clearOpen, setClearOpen] = useState(false)
   const [qrViewOpen, setQrViewOpen] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
@@ -74,7 +74,7 @@ export function MemberColumn({ memberId, index }: MemberColumnProps) {
   }
 
   return (
-    <div className="flex w-full flex-col rounded-xl border bg-card shadow-sm transition-all hover:shadow-md sm:w-64 sm:shrink-0">
+    <div className="flex w-full flex-col rounded-xl border bg-card shadow-sm transition-all hover:shadow-md sm:w-96 sm:shrink-0">
       <div className={cn('rounded-t-xl px-3 py-2.5', colorClass)}>
         <div className="flex items-center gap-2">
           <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white/20 text-[10px] font-bold text-white">
@@ -140,23 +140,28 @@ export function MemberColumn({ memberId, index }: MemberColumnProps) {
               </span>
             )}
           </div>
+        </div>
 
-          <button
-            onClick={handleFilePick}
-            className="flex h-6 w-6 items-center justify-center rounded bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
-            title="Tải ảnh QR"
-          >
-            <QrCode className="h-3.5 w-3.5" />
-          </button>
-          {member.qrUrl && (
-            <button
-              onClick={() => setQrViewOpen(true)}
-              className="flex h-6 w-6 items-center justify-center rounded bg-white/10 text-white/70 hover:bg-white/20 hover:text-white"
-              title="Xem QR"
-            >
-              <Eye className="h-3.5 w-3.5" />
-            </button>
-          )}
+        <div className="mt-2 flex items-center justify-center">
+          <div className="relative group cursor-pointer" onClick={() => member.qrUrl && setQrViewOpen(true)}>
+            {member.qrUrl ? (
+              <img
+                src={member.qrUrl}
+                alt={`QR ${member.name}`}
+                className="h-48 w-48 rounded-lg border-2 border-white/20 object-contain bg-white transition-transform hover:scale-[1.02]"
+              />
+            ) : (
+              <div
+                onClick={(e) => { e.stopPropagation(); handleFilePick() }}
+                className="flex h-48 w-48 items-center justify-center rounded-lg border-2 border-dashed border-white/20 bg-white/5 text-white/40 transition-colors hover:border-white/40 hover:text-white/60"
+              >
+                <div className="flex flex-col items-center gap-2">
+                  <QrCode className="h-8 w-8" />
+                  <span className="text-xs">Thêm QR</span>
+                </div>
+              </div>
+            )}
+          </div>
           <input
             ref={fileInputRef}
             type="file"
@@ -165,11 +170,28 @@ export function MemberColumn({ memberId, index }: MemberColumnProps) {
             onChange={handleFileChange}
           />
         </div>
+
+        {member.qrUrl && (
+          <button
+            onClick={handleFilePick}
+            className="mt-1 w-full flex items-center justify-center gap-1 rounded bg-white/10 py-1 text-[10px] text-white/60 hover:bg-white/20 hover:text-white/80 transition-colors"
+          >
+            <QrCode className="h-3 w-3" />
+            Đổi ảnh QR
+          </button>
+        )}
       </div>
 
-      {member.qrUrl && (
-        <QrViewer url={member.qrUrl} name={member.name} open={qrViewOpen} onClose={() => setQrViewOpen(false)} />
-      )}
+      <Dialog open={qrViewOpen} onOpenChange={setQrViewOpen}>
+        <DialogContent className="max-w-lg">
+          <div className="flex flex-col items-center gap-4 py-4">
+            <p className="text-sm font-medium">{member.name}</p>
+            {member.qrUrl && (
+              <img src={member.qrUrl} alt={`QR ${member.name}`} className="w-full max-w-[500px] rounded-lg object-contain bg-white" />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={removeOpen} onOpenChange={setRemoveOpen}>
         <DialogContent>
@@ -180,6 +202,19 @@ export function MemberColumn({ memberId, index }: MemberColumnProps) {
           <DialogFooter>
             <Button variant="outline" onClick={() => setRemoveOpen(false)}>Hủy</Button>
             <Button variant="destructive" onClick={() => { removeMember(memberId); setRemoveOpen(false) }}>Xoá</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={clearOpen} onOpenChange={setClearOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Xoá chi tiêu của {member.name}?</DialogTitle>
+            <DialogDescription>Chỉ xoá các khoản chi, không xoá người này. Không thể hoàn tác.</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setClearOpen(false)}>Hủy</Button>
+            <Button variant="destructive" onClick={() => { clearMemberExpenses(memberId); setClearOpen(false) }}>Xoá chi tiêu</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -195,9 +230,19 @@ export function MemberColumn({ memberId, index }: MemberColumnProps) {
       </div>
 
       <div className="border-t border-border/50 px-3 py-2">
-        <div className="flex items-center justify-between text-xs">
-          <span className="text-muted-foreground">Tổng</span>
-          <span className="font-semibold">{formatAmount(memberTotal)}</span>
+        <div className="flex items-center justify-between">
+          <button
+            onClick={() => setClearOpen(true)}
+            className="flex items-center gap-1 text-[10px] text-muted-foreground/50 hover:text-destructive transition-colors"
+            title="Xoá toàn bộ chi tiêu"
+          >
+            <Trash2 className="h-3 w-3" />
+            Xoá dữ liệu
+          </button>
+          <div className="flex items-center gap-1 text-xs">
+            <span className="text-muted-foreground">Tổng</span>
+            <span className="font-semibold">{formatAmount(memberTotal)}</span>
+          </div>
         </div>
       </div>
     </div>

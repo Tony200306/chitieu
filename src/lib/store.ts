@@ -38,6 +38,7 @@ interface AppState {
   deleteExpense: (id: string) => Promise<void>
 
   clearAll: () => Promise<void>
+  clearMemberExpenses: (memberId: string) => Promise<void>
   seedData: () => Promise<void>
 
   getMemberTotal: (memberId: string) => number
@@ -148,6 +149,14 @@ export const useStore = create<AppState>()((set, get) => ({
     const batch = writeBatch(db)
     get().expenses.forEach((e) => { batch.delete(doc(db, 'expenses', e.id)) })
     get().members.forEach((m) => { batch.delete(doc(db, 'members', m.id)) })
+    await batch.commit()
+  },
+
+  clearMemberExpenses: async (memberId) => {
+    const batch = writeBatch(db)
+    get().expenses.filter((e) => e.memberId === memberId).forEach((e) => {
+      batch.delete(doc(db, 'expenses', e.id))
+    })
     await batch.commit()
   },
 
